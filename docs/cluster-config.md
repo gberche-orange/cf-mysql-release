@@ -50,6 +50,17 @@ external locking.
 We allow blobs up to 256MB. This size is unlikely to limit a user's query,
 but is also manageable for our InnoDB log file size.
 
+### Query Cache Type and Size
+
+Matching MariaDB's default as of [version 10.1.7](https://mariadb.com/kb/en/mariadb/mariadb-1017-release-notes/) and later, cf-mysql-release disables `query_cache_type` and set `query_cache_size = 0`.
+
+### Innodb Buffer Pool Size
+
+You can tune the InnoDB Buffer Pool size via two different properties. The absolute number of bytes to allocate to the buffer pool can be specified by the `cf_mysql.mysql.innodb_buffer_pool_size` property. If you deploy to a variety of VM sizes, you can specify a percentage of total system memory using the `cf_mysql.mysql.innodb_buffer_pool_size_percent` property instead. The buffer pool will be re-calculated on every deploy. If both properties are specified, the absolute number of bytes,`cf_mysql.mysql.innodb_buffer_pool_size`, is used.
+
+If deploying to bosh lite, use `cf_mysql.mysql.innodb_buffer_pool_size`. The percentage calculation will
+be based on the total bosh lite VM size and will cause the 3 nodes to consume more memory than desired.
+
 ### Innodb File Per Table
 
 Innodb allows using either a single file to represent all data, or a separate
@@ -91,7 +102,7 @@ MySQL as its associated processes are run as `vcap`, never `root`.
 
 cf-mysql always uses the `--skip-symbolic-links` flag to prevent use of symbolic links.
 This is a general security recommendation for MySQL
-([docs](https://dev.mysql.com/doc/refman/5.7/en/security-against-attack.html). With
+([docs](https://dev.mysql.com/doc/refman/5.7/en/security-against-attack.html)). With
 symbolic links enabled, if somebody had write access to the data directory, they could
 change or delete other files owned by the same user.
 

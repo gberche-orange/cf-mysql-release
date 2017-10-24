@@ -21,6 +21,8 @@ templates:
   cluster_health_logger_config.yml.erb: config/cluster_health_logger_config.yml
   cluster_health_logger_setup.sql.erb: config/cluster_health_logger_setup.sql
   mysql_audit_logs.logrotate.erb: config/mysql_audit_logs.logrotate
+  server-cert.pem.erb: certificates/server-cert.pem
+  server-key.pem.erb: certificates/server-key.pem
 
 packages:
 - xtrabackup
@@ -50,8 +52,9 @@ provides:
   - cf_mysql.mysql.galera_healthcheck.port
   - cf_mysql.mysql.galera_healthcheck.endpoint_username
   - cf_mysql.mysql.galera_healthcheck.endpoint_password
+  - cf_mysql.mysql.tls.ca_certificate
 - name: internal-mysql-database
-  type: database
+  type: internal-database
 
 properties:
   syslog_aggregator.address:
@@ -85,6 +88,12 @@ properties:
   cf_mysql.mysql.max_connections:
     description: 'Maximum total number of database connections for the node'
     default: 1500
+  cf_mysql.mysql.tls.ca_certificate:
+    description: 'CA Certificate which signed the server certificate'
+  cf_mysql.mysql.tls.server_certificate:
+    description: 'Server certificate presented to the client for TLS connection to the database'
+  cf_mysql.mysql.tls.server_key:
+    description: 'Private key of the server certificate for TLS connection to the database'
   cf_mysql.mysql.character_set_server:
     description: 'Default character set. Note that while the MariaDB default is latin1, we default to utf8.'
     default: utf8
@@ -179,6 +188,8 @@ properties:
       - monitoring_user
       - other_excluded_user
       - bot_user
+  cf_mysql.mysql.server_audit_excluded_users_csv:
+    description: 'Additional database users to exclude from audit logging, will be combined with uses specified in server_audit_excluded_users'
   cf_mysql.mysql.cluster_name:
     description: 'A unique name for this cluster. ONLY set before first deployment. DO NOT attempt to change an existing multi-node cluster.'
     default: 'cf-mariadb-galera-cluster'
@@ -242,3 +253,6 @@ properties:
     default: false
     description: 'Allow or disallow clients to access local files'
 
+  cf_mysql.mysql.enable_galera:
+    default: true
+    description: 'Advanced feature. Only use this when deploying a single MySQL node with no intention to run any other components of cf-mysql-release.'
